@@ -100,12 +100,12 @@ func NewInfo(username, password string) *Info {
 }
 
 // GetStation Request detailed information about a station
-func (info *Info) GetStation(kennung string) (m Station) {
-	url := fmt.Sprintf("%s/%sct.json", baseURL, kennung)
+func (info *Info) GetStation(id string) (s Station) {
+	url := fmt.Sprintf("%s/%sct.json", baseURL, id)
 	resp, err := info.requestData(url)
 	if err == nil {
 		defer resp.Body.Close()
-		json.NewDecoder(resp.Body).Decode(&m)
+		json.NewDecoder(resp.Body).Decode(&s)
 	} else {
 		log.Fatal(err)
 	}
@@ -113,12 +113,12 @@ func (info *Info) GetStation(kennung string) (m Station) {
 }
 
 // ListStations Lists all stations with their basedata
-func (info *Info) ListStations() (points Stations) {
+func (info *Info) ListStations() (stations Stations) {
 	url := fmt.Sprintf("%s/stamm.json", baseURL)
 	resp, err := info.requestData(url)
 	if err == nil {
 		defer resp.Body.Close()
-		json.NewDecoder(resp.Body).Decode(&points)
+		json.NewDecoder(resp.Body).Decode(&stations)
 	} else {
 		log.Fatal(err)
 	}
