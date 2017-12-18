@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 	"odl"
 	"os"
 )
@@ -27,15 +27,23 @@ func main() {
 
 	switch *actionPtr {
 	case "list":
-		stations := info.ListStations()
-		for _, station := range stations {
-			fmt.Printf("ID: %s\tPlace: %s(%s)\tRadiation: %f\n", station.ID, station.Place, station.Zip, station.Radiation)
+		stations, err := info.ListStations()
+		if err != nil {
+			log.Printf("Listing failed: %s\n", err.Error())
+			os.Exit(1)
+		}
+		for _, station := range *stations {
+			log.Printf("ID: %s\tPlace: %s(%s)\tRadiation: %f\n", station.ID, station.Place, station.Zip, station.Radiation)
 		}
 	case "detail":
 		args := flag.Args()
 		for _, id := range args {
-			s := info.GetStation(id)
-			fmt.Printf("ID: %s\tPlace: %s(%s)\tRadiation: %f\n", s.Info.ID, s.Info.Place, s.Info.Zip, s.Info.Radiation)
+			s, err := info.GetStation(id)
+			if err != nil {
+				log.Printf("ID: %s\tError: %s\n", id, err.Error())
+			} else {
+				log.Printf("ID: %s\tPlace: %s(%s)\tRadiation: %f\n", s.Info.ID, s.Info.Place, s.Info.Zip, s.Info.Radiation)
+			}
 		}
 	default:
 		printDefaultAndExit()
