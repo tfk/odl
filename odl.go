@@ -2,8 +2,8 @@ package odl
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -84,7 +84,6 @@ type Info struct {
 func (info *Info) requestData(url string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	req.SetBasicAuth(info.username, info.password)
@@ -100,27 +99,43 @@ func NewInfo(username, password string) *Info {
 }
 
 // GetStation Request detailed information about a station
-func (info *Info) GetStation(id string) (s Station) {
+func (info *Info) GetStation(id string) (*Station, error) {
 	url := fmt.Sprintf("%s/%sct.json", baseURL, id)
 	resp, err := info.requestData(url)
-	if err == nil {
-		defer resp.Body.Close()
-		json.NewDecoder(resp.Body).Decode(&s)
-	} else {
-		log.Fatal(err)
+
+	if err != nil {
+		return nil, err
 	}
-	return
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err = errors.New(http.StatusText(resp.StatusCode))
+		return nil, err
+	}
+
+	s := &Station{}
+	json.NewDecoder(resp.Body).Decode(s)
+	return s, nil
 }
 
 // ListStations Lists all stations with their basedata
-func (info *Info) ListStations() (stations Stations) {
+func (info *Info) ListStations() (*Stations, error) {
 	url := fmt.Sprintf("%s/stamm.json", baseURL)
 	resp, err := info.requestData(url)
-	if err == nil {
-		defer resp.Body.Close()
-		json.NewDecoder(resp.Body).Decode(&stations)
-	} else {
-		log.Fatal(err)
+
+	if err != nil {
+		return nil, err
 	}
-	return
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		err = errors.New(http.StatusText(resp.StatusCode))
+		return nil, err
+	}
+
+	stations := &Stations{}
+	json.NewDecoder(resp.Body).Decode(&stations)
+	return stations, nil
 }
